@@ -1188,8 +1188,8 @@ reset_error:
 static void raydium_work_handler(struct work_struct *work)
 {
 	int i32_ret = 0;
-	unsigned char u8_tp_status[MAX_TCH_STATUS_PACKET_SIZE];
-	unsigned char u8_buf[MAX_REPORT_PACKET_SIZE];
+	unsigned char u8_tp_status[MAX_TCH_STATUS_PACKET_SIZE] = {0};
+	unsigned char u8_buf[MAX_REPORT_PACKET_SIZE] = {0};
 
 #ifdef GESTURE_EN
 	unsigned char u8_i;
@@ -1300,8 +1300,10 @@ static irqreturn_t raydium_ts_interrupt(int irq, void *dev_id)
 	} else {
 		if (!work_pending(&g_raydium_ts->work)) {
 			/* Clear interrupts*/
-			result = queue_work(g_raydium_ts->workqueue,
-					    &g_raydium_ts->work);
+			if (g_raydium_ts->workqueue) {
+				result = queue_work(g_raydium_ts->workqueue,
+						&g_raydium_ts->work);
+			}
 
 			if (!result) {
 				/*queue_work fail*/
@@ -1669,6 +1671,7 @@ static void raydium_setup_panel_notifier(struct raydium_ts_data *g_raydium_ts)
 	cookie = panel_event_notifier_register(PANEL_EVENT_NOTIFICATION_PRIMARY,
 			PANEL_EVENT_NOTIFIER_CLIENT_PRIMARY_TOUCH,
 			active_panel,&panel_event_notifier_callback, g_raydium_ts);
+	g_raydium_ts->entry = cookie;
 }
 
 #elif defined(CONFIG_DRM)
@@ -1765,6 +1768,12 @@ exit:
 	return 0;
 }
 
+static void raydium_setup_drm_unregister_notifier(void)
+{
+	if (active_panel && drm_panel_notifier_unregister(active_panel,
+				&g_raydium_ts->fb_notif) < 0)
+		LOGD(LOG_ERR, "[touch]%s: DRM UnRegister notifier failed!\n", __func__);
+}
 /*******************************************************************************
  * FUNCTION: raydium_setup_drm_notifier
  *
@@ -2452,13 +2461,20 @@ static int raydium_ts_probe(struct i2c_client *client,
 exit_irq_request_failed:
 #if defined(CONFIG_FB)
 	raydium_unregister_notifier();
-#endif/*end of CONFIG_FB*/
+#elif defined(CONFIG_PANEL_NOTIFIER)
+	panel_event_notifier_unregister(g_raydium_ts->entry);
+#elif defined(CONFIG_DRM)
+        raydium_setup_drm_unregister_notifier();
+#endif
 
 	cancel_work_sync(&g_raydium_ts->work);
 	input_unregister_device(input_dev);
+	g_raydium_ts->input_dev = NULL;
 
 exit_input_register_device_failed:
-	input_free_device(input_dev);
+	if (g_raydium_ts->input_dev)
+		input_free_device(input_dev);
+	g_raydium_ts->input_dev = NULL;
 
 exit_input_dev_alloc_failed:
 exit_check_i2c:
@@ -2498,25 +2514,35 @@ exit_check_functionality_failed:
 void raydium_ts_shutdown(struct i2c_client *client)
 {
 
+	LOGD(LOG_INFO, "[touch] %s: start\n", __func__);
+
+	cancel_work_sync(&g_raydium_ts->work);
+	if (g_raydium_ts->workqueue) {
+		destroy_workqueue(g_raydium_ts->workqueue);
+		g_raydium_ts->workqueue = NULL;
+	}
 #if defined(CONFIG_FB)
 	raydium_unregister_notifier();
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
 	unregister_early_suspend(&g_raydium_ts->early_suspend);
 #elif defined(CONFIG_PANEL_NOTIFIER)
 if (active_panel)
-	panel_event_notifier_unregister(&g_raydium_ts->fb_notif);
+	panel_event_notifier_unregister(g_raydium_ts->entry);
 #elif defined(CONFIG_DRM)
 if (active_panel)
 	drm_panel_notifier_unregister(active_panel, &g_raydium_ts->fb_notif);
 #endif/*end of CONFIG_FB*/
 	input_unregister_device(g_raydium_ts->input_dev);
-	input_free_device(g_raydium_ts->input_dev);
+	if (g_raydium_ts->input_dev)
+		input_free_device(g_raydium_ts->input_dev);
+	g_raydium_ts->input_dev = NULL;
 	gpio_free(g_raydium_ts->rst_gpio);
 
 #ifdef CONFIG_RM_SYSFS_DEBUG
 	raydium_release_sysfs(client);
 #endif /*end of CONFIG_RM_SYSFS_DEBUG*/
 
+	disable_irq(g_raydium_ts->irq);
 	free_irq(client->irq, g_raydium_ts);
 
 	if (gpio_is_valid(g_raydium_ts->rst_gpio))
@@ -2525,25 +2551,33 @@ if (active_panel)
 	if (gpio_is_valid(g_raydium_ts->irq_gpio))
 		gpio_free(g_raydium_ts->irq_gpio);
 
-	cancel_work_sync(&g_raydium_ts->work);
-	destroy_workqueue(g_raydium_ts->workqueue);
 
 	raydium_enable_regulator(g_raydium_ts, false);
 	raydium_get_regulator(g_raydium_ts, false);
 
+	kfree(g_raydium_ts);
+
 	i2c_set_clientdata(client, NULL);
+	LOGD(LOG_INFO, "[touch] %s: done\n", __func__);
 }
 
 static int raydium_ts_remove(struct i2c_client *client)
 {
 
+	LOGD(LOG_INFO, "[touch] %s: start\n", __func__);
+
+	cancel_work_sync(&g_raydium_ts->work);
+	if (g_raydium_ts->workqueue) {
+		destroy_workqueue(g_raydium_ts->workqueue);
+		g_raydium_ts->workqueue = NULL;
+	}
 #if defined(CONFIG_FB)
 	raydium_unregister_notifier();
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
 	unregister_early_suspend(&g_raydium_ts->early_suspend);
 #elif defined(CONFIG_PANEL_NOTIFIER)
 if (active_panel)
-	panel_event_notifier_unregister(&g_raydium_ts->fb_notif);
+	panel_event_notifier_unregister(g_raydium_ts->entry);
 #elif defined(CONFIG_DRM)
 if (active_panel)
 	drm_panel_notifier_unregister(active_panel, &g_raydium_ts->fb_notif);
@@ -2556,6 +2590,7 @@ if (active_panel)
 	raydium_release_sysfs(client);
 #endif /*end of CONFIG_RM_SYSFS_DEBUG*/
 
+	disable_irq(g_raydium_ts->irq);
 	free_irq(client->irq, g_raydium_ts);
 
 	if (gpio_is_valid(g_raydium_ts->rst_gpio))
@@ -2564,13 +2599,14 @@ if (active_panel)
 	if (gpio_is_valid(g_raydium_ts->irq_gpio))
 		gpio_free(g_raydium_ts->irq_gpio);
 
-	cancel_work_sync(&g_raydium_ts->work);
-	destroy_workqueue(g_raydium_ts->workqueue);
 
 	raydium_enable_regulator(g_raydium_ts, false);
 	raydium_get_regulator(g_raydium_ts, false);
 
+	kfree(g_raydium_ts);
+
 	i2c_set_clientdata(client, NULL);
+	LOGD(LOG_INFO, "[touch] %s: done\n", __func__);
 	return 0;
 }
 
