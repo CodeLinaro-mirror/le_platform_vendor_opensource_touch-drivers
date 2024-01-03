@@ -30,6 +30,10 @@
 #include <linux/of_irq.h>
 #include <linux/version.h>
 
+#ifndef CONFIG_DRM
+#define CONFIG_DRM
+#endif
+
 #if defined(CONFIG_DRM)
 #include <linux/soc/qcom/panel_event_notifier.h>
 #endif
@@ -138,8 +142,6 @@ static void nvt_i2c_register_for_panel_events(struct device_node *dp,
  *******************************************************/
 static void nvt_irq_enable(bool enable)
 {
-	struct irq_desc *desc;
-
 	if (enable) {
 		if (!ts->irq_enabled) {
 			enable_irq(ts->client->irq);
@@ -152,8 +154,7 @@ static void nvt_irq_enable(bool enable)
 		}
 	}
 
-	desc = irq_to_desc(ts->client->irq);
-	NVT_LOG("enable=%d, desc->depth=%d\n", enable, desc->depth);
+	NVT_LOG("enable=%d\n", enable);
 }
 
 /*******************************************************
@@ -799,10 +800,10 @@ static void nvt_parse_dt(struct device *dev)
 	struct device_node *np = dev->of_node;
 
 #if NVT_TOUCH_SUPPORT_HW_RST
-	ts->reset_gpio = of_get_named_gpio_flags(np, "novatek,reset-gpio", 0, &ts->reset_flags);
+	ts->reset_gpio = of_get_named_gpio(np, "novatek,reset-gpio", 0);
 	NVT_LOG("novatek,reset-gpio=%d\n", ts->reset_gpio);
 #endif
-	ts->irq_gpio = of_get_named_gpio_flags(np, "novatek,irq-gpio", 0, &ts->irq_flags);
+	ts->irq_gpio = of_get_named_gpio(np, "novatek,irq-gpio", 0);
 	NVT_LOG("novatek,irq-gpio=%d\n", ts->irq_gpio);
 
 }
@@ -1300,8 +1301,7 @@ out:
  * return:
  *     Executive outcomes. 0---succeed. negative---failed
  *******************************************************/
-static int32_t nvt_ts_late_probe(struct i2c_client *client,
-	const struct i2c_device_id *id)
+static int32_t nvt_ts_late_probe(struct i2c_client *client)
 {
 	int32_t ret = 0;
 #if ((TOUCH_KEY_NUM > 0) || WAKEUP_GESTURE)
@@ -1526,8 +1526,7 @@ err_gpio_config_failed:
  * return:
  *     Executive outcomes. 0---succeed. negative---failed
  *******************************************************/
-static int32_t nvt_ts_probe(struct i2c_client *client,
-	const struct i2c_device_id *id)
+static int nvt_ts_probe(struct i2c_client *client)
 {
 	int32_t ret = 0;
 #if defined(CONFIG_DRM)
@@ -1567,8 +1566,6 @@ static int32_t nvt_ts_probe(struct i2c_client *client,
 
 	mutex_init(&ts->lock);
 	mutex_init(&ts->xbuf_lock);
-
-	ts->id = id;
 
 #if defined(CONFIG_DRM)
 	nvt_i2c_register_for_panel_events(client->dev.of_node, ts);
@@ -1820,7 +1817,7 @@ static int32_t nvt_ts_resume(struct device *dev)
 	NVT_LOG("start\n");
 
 	if (bTouchIsAwake || ts->fw_ver == 0) {
-		nvt_ts_late_probe(ts->client, ts->id);
+		nvt_ts_late_probe(ts->client);
 		NVT_LOG("nvt_ts_late_probe\n");
 		return 0;
 	}

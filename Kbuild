@@ -46,6 +46,11 @@ ifeq ($(CONFIG_ARCH_TRINKET), y)
         LINUX_INC += -include $(TOUCH_ROOT)/config/gki_trinkettouchconf.h
 endif
 
+ifeq ($(CONFIG_ARCH_QCOM), y)
+	include $(TOUCH_ROOT)/config/qcomtouch.conf
+	LINUX_INC += -include $(TOUCH_ROOT)/config/qcomtouchconf.h
+endif
+
 LINUX_INC +=	-Iinclude/linux \
 		-Iinclude/linux/drm \
 		-Iinclude/linux/gunyah \
