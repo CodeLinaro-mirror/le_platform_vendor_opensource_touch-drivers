@@ -24,7 +24,7 @@
   *
   * THIS SOFTWARE IS SPECIFICALLY DESIGNED FOR EXCLUSIVE USE WITH ST PARTS.
   *
-  * Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+  * Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
   */
 
 
@@ -137,7 +137,7 @@ extern struct mutex fts_int;
 static void fts_interrupt_enable(struct fts_ts_info *info);
 static int fts_init_sensing(struct fts_ts_info *info);
 static int fts_mode_handler(struct fts_ts_info *info, int force);
-
+static int fts_enable_reg(struct fts_ts_info *info, bool enable);
 
 static int fts_chip_initialization(struct fts_ts_info *info, int init_type);
 #if defined(CONFIG_DRM)
@@ -3589,10 +3589,11 @@ static void fts_resume_work(struct work_struct *work)
 {
 	struct fts_ts_info *info;
 
-
 	info = container_of(work, struct fts_ts_info, resume_work);
 
 	info->resume_bit = 1;
+
+	fts_enable_reg(info, true);
 
 	fts_system_reset();
 
@@ -3624,6 +3625,8 @@ static void fts_suspend_work(struct work_struct *work)
 	info->sensor_sleep = true;
 
 	fts_enableInterrupt();
+
+	fts_enable_reg(info, false);
 }
 /** @}*/
 
@@ -4467,10 +4470,6 @@ skip_to_fw_update:
 		goto ProbeErrorExit_7;
 	}
 
-	retval = fts_proc_init();
-	if (retval)
-		logError(1, "%s Error: can not create /proc file!\n", tag);
-
 #ifndef FW_UPDATE_ON_PROBE
 	queue_delayed_work(info->fwu_workqueue, &info->fwu_work,
 			   msecs_to_jiffies(EXP_FN_WORK_DELAY_MS));
@@ -4627,8 +4626,6 @@ static int st_fts_spi_probe(struct spi_device *spi)
   */
 static void st_fts_remove_entry(struct fts_ts_info *info)
 {
-	fts_proc_remove();
-
 	/* sysfs stuff */
 	sysfs_remove_group(&info->dev->kobj, &info->attrs);
 
