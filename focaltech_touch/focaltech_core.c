@@ -3062,6 +3062,11 @@ static int fts_ts_suspend(struct device *dev)
 				FTS_ERROR("power enter suspend fail");
 			}
 #endif
+		} else {
+#if FTS_PINCTRL_EN
+			fts_pinctrl_select_suspend(ts_data);
+#endif
+			gpio_direction_output(ts_data->pdata->reset_gpio, 0);
 		}
 #endif
 	}
@@ -3111,13 +3116,14 @@ static int fts_ts_resume(struct device *dev)
 #if FTS_POWER_SOURCE_CUST_EN
 		fts_power_source_resume(ts_data);
 #endif
-		fts_reset_proc(200);
+	} else {
+#if FTS_PINCTRL_EN
+		fts_pinctrl_select_normal(ts_data);
+#endif
 	}
-
-
+#endif
 	fts_reset_proc(200);
 
-#endif
 	fts_wait_tp_to_valid();
 	fts_ex_mode_recovery(ts_data);
 
