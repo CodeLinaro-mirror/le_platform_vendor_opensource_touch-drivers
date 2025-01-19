@@ -3124,6 +3124,9 @@ static int fts_ts_resume(struct device *dev)
 #endif
 	fts_reset_proc(200);
 
+	fts_reset_proc(200);
+
+#endif
 	fts_wait_tp_to_valid();
 	fts_ex_mode_recovery(ts_data);
 
