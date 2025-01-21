@@ -3121,8 +3121,6 @@ static int fts_ts_resume(struct device *dev)
 		fts_pinctrl_select_normal(ts_data);
 #endif
 	}
-#endif
-	fts_reset_proc(200);
 
 	fts_reset_proc(200);
 
