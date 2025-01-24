@@ -1588,6 +1588,9 @@ static int32_t nvt_ts_probe(struct i2c_client *client,
 	}
 #endif
 	NVT_LOG("end\n");
+	NVT_LOG("nvt_ts_late_probe calling\n");
+	nvt_ts_late_probe(client,id);
+	NVT_LOG("nvt_ts_late_probe calling finish\n");
 	return 0;
 #if defined(CONFIG_DRM)
 
