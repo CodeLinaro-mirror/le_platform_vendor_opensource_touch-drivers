@@ -30,7 +30,7 @@
 #define RAD_MAIN_VERSION	0x01
 #ifdef CONFIG_ARCH_VIENNA
 #define RAD_MINOR_VERSION	0x06
-#elif
+#else
 #define RAD_MINOR_VERSION	0x01
 #endif
 #define RAD_CUSTOMER_VERSION	0x0100
@@ -51,7 +51,7 @@
 /* I2C R/W configuration literal */
 #define RAYDIUM_I2C_WRITE       I2C_SMBUS_WRITE
 #define RAYDIUM_I2C_READ        I2C_SMBUS_READ
-#define SYN_I2C_RETRY_TIMES     1
+#define SYN_I2C_RETRY_TIMES     10
 #define MAX_WRITE_PACKET_SIZE   128
 #define MAX_READ_PACKET_SIZE    128
 
@@ -107,7 +107,7 @@
 #define RAYDIUM_PDA2_HOST_CMD_ADDR          0x02    /* only in Page 0 */
 #ifdef CONFIG_ARCH_VIENNA
 #define RAYDIUM_PDA2_TCH_FINGER2_ADDR       0x03    /* only in Page 0 */
-#elif
+#else
 #define RAYDIUM_PDA2_PALM_AREA_ADDR         0x03    /* only in Page 0 */
 #endif
 #define RAYDIUM_PDA2_GESTURE_RPT_ADDR       0x04    /* only in Page 0 */
@@ -209,7 +209,7 @@ enum raydium_touch_status {
 	TOUCH_COVER_RELEASE,
 	TOUCH_SHORTCLICK
 };
-#elif
+#else
 #define TOUCH_PRESS					0
 #define TOUCH_RELEASE				1
 #define TOUCH_MOVE					2
@@ -239,7 +239,7 @@ enum raydium_touch_status {
 /* FT APK data type */
 #ifdef CONFIG_ARCH_VIENNA
 #define RAYDIUM_FT_UPDATE    0x01
-#elif
+#else
 #define RAYDIUM_FT_UPDATE    0x00
 #endif
 
@@ -269,12 +269,24 @@ enum raydium_touch_status {
 #define RAD_SELFTEST
 #define PARA_FW_VERSION_OFFSET	4
 
+#ifdef CONFIG_ARCH_VIENNA
+#define ENABLE_FW_LOADER	0
+#else
 #define ENABLE_FW_LOADER	1
+#endif
 #define FW_NAME      "RM6D030.bin"
 
 #define PINCTRL_STATE_ACTIVE     "pmx_ts_active"
 #define PINCTRL_STATE_SUSPEND    "pmx_ts_suspend"
 #define PINCTRL_STATE_RELEASE    "pmx_ts_release"
+
+#ifdef CONFIG_ARCH_VIENNA
+#define PINCTRL_STATE_INT_ACTIVE      "pmx_ts_int_active"
+#define PINCTRL_STATE_RESET_ACTIVE    "pmx_ts_reset_active"
+#define PINCTRL_STATE_INT_SUSPEND     "pmx_ts_int_suspend"
+#define PINCTRL_STATE_RESET_SUSPEND   "pmx_ts_reset_suspend"
+#endif
+
 
 /* Power Management Macros Enablement */
 
@@ -300,6 +312,7 @@ enum raydium_touch_status {
 #include <drm/drm_panel.h>
 #endif
 
+extern uint32_t slate_ack_resp;
 
 enum raydium_fb_state {
 	FB_ON,
@@ -356,7 +369,16 @@ struct raydium_ts_data {
 	struct pinctrl_state *pinctrl_state_active;
 	struct pinctrl_state *pinctrl_state_suspend;
 	struct pinctrl_state *pinctrl_state_release;
+
+#ifdef CONFIG_ARCH_VIENNA
+	struct pinctrl_state *pmx_ts_int_active;
+	struct pinctrl_state *pmx_ts_reset_active;
+	struct pinctrl_state *pmx_ts_int_suspend;
+	struct pinctrl_state *pmx_ts_reset_suspend;
+#endif
+
 #endif /*end of MSM_NEW_VER*/
+	int touch_offload;
 
 
 };
@@ -409,7 +431,7 @@ enum raydium_pt_report_idx {
 	POS_RESERVED,
 	LEN_PT = 11
 };
-#elif
+#else
 enum raydium_pt_report_idx {
 	POS_PT_ID = 0,
 	POS_X_L,
@@ -489,6 +511,8 @@ extern int raydium_i2c_pda_set_address(unsigned int u32_address,
 				       unsigned char u8_mode);
 extern void raydium_mem_table_init(unsigned short u16_id);
 extern int raydium_id_init(unsigned char u8_type);
+extern int raydium_get_regulator(struct raydium_ts_data *cd, bool get);
+extern int raydium_enable_regulator(struct raydium_ts_data *cd, bool en);
 
 #ifdef RAD_SELFTEST
 extern int raydium_do_selftest(struct raydium_ts_data *ts);
