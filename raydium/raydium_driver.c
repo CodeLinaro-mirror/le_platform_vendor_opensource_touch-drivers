@@ -216,44 +216,6 @@ static int raydium_ts_pinctrl_init(void)
 		goto err_pinctrl_get;
 	}
 
-#ifdef CONFIG_ARCH_VIENNA
-	g_raydium_ts->pmx_ts_int_active
-		= pinctrl_lookup_state(g_raydium_ts->ts_pinctrl, "pmx_ts_int_active");
-	if (IS_ERR_OR_NULL(g_raydium_ts->pmx_ts_int_active)) {
-		i32_ret = PTR_ERR(g_raydium_ts->pmx_ts_int_active);
-		LOGD(LOG_ERR, "[touch]Can not lookup %s pinstate %d\n",
-		     PINCTRL_STATE_INT_ACTIVE, i32_ret);
-		goto err_pinctrl_lookup;
-	}
-
-	g_raydium_ts->pmx_ts_reset_active
-		= pinctrl_lookup_state(g_raydium_ts->ts_pinctrl, "pmx_ts_reset_active");
-	if (IS_ERR_OR_NULL(g_raydium_ts->pmx_ts_reset_active)) {
-		i32_ret = PTR_ERR(g_raydium_ts->pmx_ts_reset_active);
-		LOGD(LOG_ERR, "[touch]Can not lookup %s pinstate %d\n",
-		     PINCTRL_STATE_RESET_ACTIVE, i32_ret);
-		goto err_pinctrl_lookup;
-	}
-
-		g_raydium_ts->pmx_ts_int_suspend
-		= pinctrl_lookup_state(g_raydium_ts->ts_pinctrl, "pmx_ts_int_suspend");
-	if (IS_ERR_OR_NULL(g_raydium_ts->pmx_ts_int_suspend)) {
-		i32_ret = PTR_ERR(g_raydium_ts->pmx_ts_int_suspend);
-		LOGD(LOG_ERR, "[touch]Can not lookup %s pinstate %d\n",
-		     PINCTRL_STATE_INT_SUSPEND, i32_ret);
-		goto err_pinctrl_lookup;
-	}
-
-	g_raydium_ts->pmx_ts_reset_suspend
-		= pinctrl_lookup_state(g_raydium_ts->ts_pinctrl, "pmx_ts_reset_suspend");
-	if (IS_ERR_OR_NULL(g_raydium_ts->pmx_ts_reset_suspend)) {
-		i32_ret = PTR_ERR(g_raydium_ts->pmx_ts_reset_suspend);
-		LOGD(LOG_ERR, "[touch]Can not lookup %s pinstate %d\n",
-		     PINCTRL_STATE_RESET_SUSPEND, i32_ret);
-		goto err_pinctrl_lookup;
-	}
-#endif
-
 	g_raydium_ts->pinctrl_state_active
 		= pinctrl_lookup_state(g_raydium_ts->ts_pinctrl, PINCTRL_STATE_ACTIVE);
 	if (IS_ERR_OR_NULL(g_raydium_ts->pinctrl_state_active)) {
@@ -1607,15 +1569,17 @@ static void raydium_ts_do_suspend(void)
 	input_sync(g_raydium_ts->input_dev);
 
 #ifdef GESTURE_EN
-	if (device_may_wakeup(&g_raydium_ts->client->dev)) {
-		LOGD(LOG_INFO, "[touch]Device may wakeup\n");
-		if (!enable_irq_wake(g_raydium_ts->irq))
-			g_raydium_ts->irq_wake = true;
+	if (g_raydium_ts->is_sleep != 1) {
+		if (device_may_wakeup(&g_raydium_ts->client->dev)) {
+			LOGD(LOG_INFO, "[touch]Device may wakeup\n");
+			if (!enable_irq_wake(g_raydium_ts->irq))
+				g_raydium_ts->irq_wake = true;
 
-	} else {
-		LOGD(LOG_INFO, "[touch]Device not wakeup\n");
+		} else {
+			LOGD(LOG_INFO, "[touch]Device not wakeup\n");
+		}
+		raydium_irq_control(ENABLE);
 	}
-	raydium_irq_control(ENABLE);
 #endif
 
 	g_raydium_ts->is_suspend = 1;
