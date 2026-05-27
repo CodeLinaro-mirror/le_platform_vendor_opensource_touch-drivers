@@ -1126,6 +1126,7 @@ static int qts_trusted_touch_pvm_vm_mode_enable(struct qts_data *qts_data)
 	 */
 	if (qts_data->irq > 0) {
 		synchronize_irq(qts_data->irq);
+
 #if IS_ENABLED(CONFIG_MPM_LEGACY)
 		dir_conn_irq = msm_gpio_get_dir_conn_irq(qts_data->irq);
 		if (dir_conn_irq > 0)
@@ -1167,10 +1168,11 @@ static int qts_trusted_touch_pvm_vm_mode_enable(struct qts_data *qts_data)
 #else
 	lend_irq = qts_data->irq;
 #endif
+
 	rc = gh_irq_lend_v2(vm_info->irq_label, vm_info->vm_name,
 		lend_irq, &qts_vm_irq_on_release_callback, qts_data);
 	if (rc) {
-		pr_err("Failed to lend irq\n");
+		pr_err("Failed to lend irq with error code: %d\n", rc);
 		goto abort_handler;
 	}
 
