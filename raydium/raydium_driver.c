@@ -2311,16 +2311,26 @@ static void raydium_input_set(struct input_dev *input_dev)
 
 }
 
-void touch_notify_glink_channel_state(bool state)
+static void touch_notify_glink_channel_state(bool state)
 {
 	LOGD(LOG_INFO, "%s:[touch] channel state: %d\n", __func__, state);
+	if (g_raydium_ts) {
+		g_raydium_ts->glink_channel_state = state;
+	} else {
+		LOGD(LOG_ERR, "%s:[touch] g_raydium_ts is NULL, ignoring glink_channel_state update\n", __func__);
+	}
 }
 
-void glink_touch_rx_msg(void *data, int len)
+static void glink_touch_rx_msg(void *data, int len)
 {
 	int rc = 0;
 
 	LOGD(LOG_INFO, "%s:[touch]TOUCH_RX_MSG Start:\n", __func__);
+
+	if (!g_raydium_ts) {
+		LOGD(LOG_ERR, "%s:[touch] g_raydium_ts is NULL, ignoring message\n", __func__);
+		return;
+	}
 
 	if (len > TOUCH_GLINK_INTENT_SIZE) {
 		LOGD(LOG_ERR, "Invalid TOUCH glink intent size\n");
@@ -2558,6 +2568,7 @@ static int raydium_ts_probe(struct i2c_client *client)
 	g_raydium_ts->y_max = pdata->y_max - 1;
 	g_raydium_ts->is_suspend = 0;
 	g_raydium_ts->is_sleep = 0;
+	g_raydium_ts->glink_channel_state = false;
 
 
 #ifdef GESTURE_EN
@@ -3012,7 +3023,7 @@ exit_check_functionality_failed:
 }
 #endif
 
-void raydium_ts_shutdown(struct i2c_client *client)
+static void raydium_ts_shutdown(struct i2c_client *client)
 {
 
 	LOGD(LOG_INFO, "[touch] %s: start\n", __func__);

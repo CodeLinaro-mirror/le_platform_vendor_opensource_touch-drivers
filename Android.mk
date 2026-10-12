@@ -37,6 +37,10 @@ ifeq ($(TARGET_BOARD_PLATFORM), lahaina)
       LOCAL_MODULE_DDK_BUILD := true
 endif
 
+ifeq ($(TARGET_BOARD_PLATFORM), taro)
+      LOCAL_MODULE_DDK_BUILD := true
+endif
+
 ifeq ($(TARGET_BOARD_PLATFORM), vienna)
       LOCAL_MODULE_DDK_BUILD := true
 endif
@@ -50,6 +54,14 @@ ifeq ($(TARGET_BOARD_PLATFORM), monaco)
 endif
 
 ifeq ($(TARGET_BOARD_PLATFORM), shikra)
+      LOCAL_MODULE_DDK_BUILD := true
+endif
+
+ifeq ($(TARGET_BOARD_PLATFORM), shikra_64go)
+      LOCAL_MODULE_DDK_BUILD := true
+endif
+
+ifeq ($(TARGET_BOARD_PLATFORM), shikra_tiny_32go)
       LOCAL_MODULE_DDK_BUILD := true
 endif
 
@@ -80,7 +92,7 @@ KBUILD_OPTIONS += $(TOUCH_SELECT)
 ifeq ($(TARGET_KERNEL_DLKM_DISABLE), true)
        ifeq ($(TARGET_KERNEL_DLKM_TOUCH_OVERRIDE), false)
                TOUCH_DLKM_ENABLE := false
-               ifneq ($(filter $(TARGET_BOARD_PLATFORM), hamoa_la monaco vienna shikra),$(TARGET_BOARD_PLATFORM))
+               ifneq ($(filter $(TARGET_BOARD_PLATFORM), taro hamoa_la monaco vienna shikra shikra_64go shikra_tiny_32go mahua),$(TARGET_BOARD_PLATFORM))
                      # build dummy_ts.ko
                      include $(CLEAR_VARS)
                      LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
@@ -95,7 +107,6 @@ ifeq ($(TARGET_KERNEL_DLKM_DISABLE), true)
 endif
 
 
-
 ifeq ($(TOUCH_DLKM_ENABLE),  true)
 ifeq ($(TARGET_BOARD_PLATFORM), shikra)
 
@@ -104,6 +115,115 @@ ifeq ($(TARGET_BOARD_PLATFORM), shikra)
        LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
        LOCAL_MODULE              := gt9xx-ts.ko
        LOCAL_MODULE_KBUILD_NAME  := gt9xx-ts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := qts.ko
+       LOCAL_MODULE_KBUILD_NAME  := qts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+else ifeq ($(TARGET_BOARD_PLATFORM), shikra_64go)
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := gt9xx-ts.ko
+       LOCAL_MODULE_KBUILD_NAME  := gt9xx-ts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := qts.ko
+       LOCAL_MODULE_KBUILD_NAME  := qts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+else ifeq ($(TARGET_BOARD_PLATFORM), shikra_tiny_32go)
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := gt9xx-ts.ko
+       LOCAL_MODULE_KBUILD_NAME  := gt9xx-ts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := qts.ko
+       LOCAL_MODULE_KBUILD_NAME  := qts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+
+else ifeq ($(TARGET_BOARD_PLATFORM), shikra-tuivm)
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := gt9xx-ts.ko
+       LOCAL_MODULE_KBUILD_NAME  := gt9xx-ts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := qts.ko
+       LOCAL_MODULE_KBUILD_NAME  := qts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+
+else ifeq ($(TARGET_BOARD_PLATFORM), shikra-oemvm)
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := gt9xx-ts.ko
+       LOCAL_MODULE_KBUILD_NAME  := gt9xx-ts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := qts.ko
+       LOCAL_MODULE_KBUILD_NAME  := qts.ko
        LOCAL_MODULE_TAGS         := optional
        #LOCAL_MODULE_DEBUG_ENABLE := true
        LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
@@ -354,6 +474,17 @@ else ifeq ($(TARGET_BOARD_PLATFORM), art)
        ###########################################################
        include $(CLEAR_VARS)
        LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := goodix_ts2.ko
+       LOCAL_MODULE_KBUILD_NAME  := goodix_ts2.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
        LOCAL_MODULE              := synaptics_tcm2_ts.ko
        LOCAL_MODULE_KBUILD_NAME  := synaptics_tcm2_ts.ko
        LOCAL_MODULE_TAGS         := optional
@@ -552,6 +683,16 @@ else ifeq ($(TARGET_BOARD_PLATFORM), bengal)
        include $(DLKM_DIR)/Build_external_kernelmodule.mk
        ###########################################################
 
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := focaltech_fts.ko
+       LOCAL_MODULE_KBUILD_NAME  := focaltech_fts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
 
        ###########################################################
        include $(CLEAR_VARS)
@@ -670,6 +811,30 @@ else ifeq ($(TARGET_BOARD_PLATFORM), parrot)
        include $(DLKM_DIR)/Build_external_kernelmodule.mk
        ###########################################################
 
+else ifeq ($(TARGET_BOARD_PLATFORM), taro)
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := qts.ko
+       LOCAL_MODULE_KBUILD_NAME  := qts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := focaltech_fts.ko
+       LOCAL_MODULE_KBUILD_NAME  := focaltech_fts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
 else ifeq ($(TARGET_BOARD_PLATFORM), lahaina)
 
        ###########################################################
@@ -699,6 +864,17 @@ else ifeq ($(TARGET_BOARD_PLATFORM), lahaina)
        LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
        LOCAL_MODULE              := focaltech_fts.ko
        LOCAL_MODULE_KBUILD_NAME  := focaltech_fts.ko
+       LOCAL_MODULE_TAGS         := optional
+       #LOCAL_MODULE_DEBUG_ENABLE := true
+       LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
+       include $(DLKM_DIR)/Build_external_kernelmodule.mk
+       ###########################################################
+
+       ###########################################################
+       include $(CLEAR_VARS)
+       LOCAL_SRC_FILES   := $(wildcard $(LOCAL_PATH)/**/*) $(wildcard $(LOCAL_PATH)/*)
+       LOCAL_MODULE              := atmel_mxt_ts.ko
+       LOCAL_MODULE_KBUILD_NAME  := atmel_mxt_ts.ko
        LOCAL_MODULE_TAGS         := optional
        #LOCAL_MODULE_DEBUG_ENABLE := true
        LOCAL_MODULE_PATH         := $(KERNEL_MODULES_OUT)
